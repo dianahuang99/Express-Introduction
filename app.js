@@ -1,5 +1,11 @@
 const express = require("express");
 const ExpressError = require("./expressError");
+const {
+  getMean,
+  getMedian,
+  getMode,
+  turnStringToIntArray,
+} = require("./helpers");
 
 const app = express();
 
@@ -8,17 +14,10 @@ app.get("/mean", function (req, res, next) {
     if (Object.keys(req.query).length === 0) {
       throw new ExpressError("nums are required", 400);
     }
-    const numArray = req.query.nums.split(",");
-    let total = 0;
-    for (let stringNum of numArray) {
-      const num = parseInt(stringNum);
-      if (!num) {
-        throw new ExpressError(`${stringNum} is not a number`, 400);
-      }
-      total += num;
-    }
-    const avg = total / numArray.length;
-    res.send(String(avg));
+    const numArrayString = req.query.nums.split(",");
+    const numArray = turnStringToIntArray(numArrayString);
+    const avg = getMean(numArray);
+    return res.send(avg);
   } catch (e) {
     next(e);
   }
@@ -30,24 +29,9 @@ app.get("/median", function (req, res, next) {
       throw new ExpressError("nums are required", 400);
     }
     const numArrayString = req.query.nums.split(",");
-    const numArray = [];
-
-    for (let stringNum of numArrayString) {
-      const num = parseInt(stringNum);
-      if (!num) {
-        throw new ExpressError(`${stringNum} is not a number`, 400);
-      }
-      numArray.push(num);
-    }
-
-    const mid = Math.floor(numArray.length / 2);
-    const nums = [...numArray].sort((a, b) => a - b);
-
-    if (nums.length % 2 !== 0) {
-      res.send(`${nums[mid]}`);
-    } else {
-      res.send(`${(nums[mid - 1] + nums[mid]) / 2}`);
-    }
+    const numArray = turnStringToIntArray(numArrayString);
+    const median = getMedian(numArray);
+    return res.send(median);
   } catch (e) {
     next(e);
   }
@@ -59,25 +43,9 @@ app.get("/mode", function (req, res, next) {
       throw new ExpressError("nums are required", 400);
     }
     const numArrayString = req.query.nums.split(",");
-    const numArray = [];
-
-    for (let stringNum of numArrayString) {
-      const num = parseInt(stringNum);
-      if (!num) {
-        throw new ExpressError(`${stringNum} is not a number`, 400);
-      }
-      numArray.push(num);
-    }
-
-    res.send(
-      `${numArray
-        .sort(
-          (a, b) =>
-            numArray.filter((v) => v === a).length -
-            numArray.filter((v) => v === b).length
-        )
-        .pop()}`
-    );
+    const numArray = turnStringToIntArray(numArrayString);
+    const mode = getMode(numArray);
+    return res.send(mode);
   } catch (e) {
     next(e);
   }
